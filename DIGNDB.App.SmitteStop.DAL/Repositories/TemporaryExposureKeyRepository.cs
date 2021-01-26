@@ -37,20 +37,20 @@ namespace DIGNDB.App.SmitteStop.DAL.Repositories
             _logger.LogInformation("New key data:");
             foreach (var newKey in newKeyData)
             {
-                _logger.LogInformation(newKey.ToString());
+                _logger.LogInformation(BitConverter.ToString(newKey));
             }
             var keysInDb = _dbContext.TemporaryExposureKey.Where(u => newKeyData.Contains(u.KeyData))
                 .Select(u => u.KeyData).ToArray();
             _logger.LogInformation("Keys in db:");
             foreach (var keyInDb in keysInDb)
             {
-                _logger.LogInformation(keyInDb.ToString());
+                _logger.LogInformation(BitConverter.ToString(keyInDb));
             }
             var keysNotInDb = temporaryExposureKeys.Where(u => keysInDb.All(x => !x.SequenceEqual(u.KeyData)));
             _logger.LogInformation("Keys not in db:");
             foreach (var keyNotInDb in keysNotInDb)
             {
-                _logger.LogInformation(keyNotInDb.KeyData.ToString());
+                _logger.LogInformation(BitConverter.ToString(keyNotInDb.KeyData));
             }
             foreach (var key in keysNotInDb)
             {
