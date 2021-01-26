@@ -3,6 +3,7 @@ using DIGNDB.App.SmitteStop.Domain;
 using DIGNDB.App.SmitteStop.Domain.Db;
 using DIGNDB.App.SmitteStop.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,11 +14,13 @@ namespace DIGNDB.App.SmitteStop.DAL.Repositories
     public class TemporaryExposureKeyRepository : ITemporaryExposureKeyRepository
     {
         private readonly DigNDB_SmittestopContext _dbContext;
+        private readonly ILogger<TemporaryExposureKeyRepository> _logger;
         private readonly ICountryRepository _countryRepository;
 
         // constructor used for unit tests
-        public TemporaryExposureKeyRepository(DigNDB_SmittestopContext dbContext, ICountryRepository countryRepository)
+        public TemporaryExposureKeyRepository(DigNDB_SmittestopContext dbContext, ICountryRepository countryRepository, ILogger<TemporaryExposureKeyRepository> logger)
         {
+            _logger = logger;
             _countryRepository = countryRepository;
             _dbContext = dbContext;
         }
@@ -31,9 +34,24 @@ namespace DIGNDB.App.SmitteStop.DAL.Repositories
         public async Task AddUniqueTemporaryExposureKeys(IList<TemporaryExposureKey> temporaryExposureKeys)
         {
             var newKeyData = temporaryExposureKeys.Select(u => u.KeyData).Distinct().ToArray();
+            _logger.LogInformation("New key data:");
+            foreach (var newKey in newKeyData)
+            {
+                _logger.LogInformation(newKey.ToString());
+            }
             var keysInDb = _dbContext.TemporaryExposureKey.Where(u => newKeyData.Contains(u.KeyData))
                 .Select(u => u.KeyData).ToArray();
+            _logger.LogInformation("Keys in db:");
+            foreach (var keyInDb in keysInDb)
+            {
+                _logger.LogInformation(keyInDb.ToString());
+            }
             var keysNotInDb = temporaryExposureKeys.Where(u => keysInDb.All(x => !x.SequenceEqual(u.KeyData)));
+            _logger.LogInformation("Keys not in db:");
+            foreach (var keyNotInDb in keysNotInDb)
+            {
+                _logger.LogInformation(keyNotInDb.KeyData.ToString());
+            }
             foreach (var key in keysNotInDb)
             {
                 _dbContext.Add(key);
